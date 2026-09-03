@@ -1,110 +1,74 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   vbc.c                                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: slayer <slayer@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/08/10 22:07:48 by slayer            #+#    #+#             */
-/*   Updated: 2026/08/10 22:35:44 by slayer           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <stdio.h>
-#include <malloc.h>
-#include <ctype.h>
+#include <stdlib.h>
 
-typedef struct node {
-    enum {
-        ADD,
-        MULTI,
-        VAL
-    }   type;
-    int val;
-    struct node *l;
-    struct node *r;
-}   node;
+char *g_expr;
 
-node    *new_node(node n)
+int expr(void);
+
+void error(void)
 {
-    node *ret = calloc(1, sizeof(node));
-    if (!ret)
-        return (NULL);
-    *ret = n;
-    return (ret);
-}
-
-void    destroy_tree(node *n)
-{
-    if (!n)
-        return ;
-    if (n->type != VAL)
-    {
-        destroy_tree(n->l);
-        destroy_tree(n->r);
-    }
-    free(n);
-}
-
-void    unexpected(char c)
-{
-    if (c)
-        printf("Unexpected token '%c'\n", c);
-    else
+    if (*g_expr == '\0')
         printf("Unexpected end of input\n");
+    else
+        printf("Unexpected token '%c'\n", *g_expr);
+    exit(1);
 }
 
-int accept(char **s, char c)
+int factor(void)
 {
-    if (**s == c)
+    int n;
+
+    if (*g_expr >= '0' && *g_expr <= '9')
+        return (*g_expr++ - '0');
+
+    if (*g_expr == '(')
     {
-        (*s)++;
-        return (1);
+        g_expr++;
+        n = expr();
+        if (*g_expr != ')')
+            error();
+        g_expr++;
+        return (n);
     }
+    error();
     return (0);
 }
 
-int expect(char **s, char c)
+int term(void)
 {
-    if (accept(s, c))
-        return (1);
-    unexpected(**s);
-    return (0);
+    int n;
+
+    n = factor();
+    while (g_expr == '')
+    {
+        g_expr++;
+        n *= factor();
+    }
+    return (n);
 }
 
-//...
-
-node    *parse_expr(char *s)
+int expr(void)
 {
+    int n;
 
-    if (*s) 
+    n = term();
+    while (*g_expr == '+')
     {
-        destroy_tree(ret);
-        return (NULL);
+        g_expr++;
+        n += term();
     }
-    return (ret);
-}
-
-int eval_tree(node *tree)
-{
-    switch (tree->type)
-    {
-        case ADD:
-            return (eval_tree(tree->l) + eval_tree(tree->r));
-        case MULTI:
-            return (eval_tree(tree->l) * eval_tree(tree->r));
-        case VAL:
-            return (tree->val);
-    }
+    return (n);
 }
 
 int main(int argc, char **argv)
 {
+    int result;
+
     if (argc != 2)
         return (1);
-    node *tree = parse_expr(argv[1]);
-    if (!tree)
-        return (1);
-    printf("%d\n", eval_tree(tree));
-    destroy_tree(tree);
+    g_expr = argv[1];
+    result = expr();
+    if (*g_expr != '\0')
+        error();
+    printf("%d\n", result);
 }
