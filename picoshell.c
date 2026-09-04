@@ -6,7 +6,7 @@
 /*   By: slayer <slayer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/10 18:38:04 by slayer            #+#    #+#             */
-/*   Updated: 2026/08/10 19:17:16 by slayer           ###   ########.fr       */
+/*   Updated: 2026/09/03 10:40:32 by slayer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,13 @@ int	picoshell(char **cmds[])
 		if (cmds[i + 1] != NULL)
 		{
 			if (pipe(fd) < 0)
-				return(1);
+			{
+				if (prev_fd != -1)
+					close(prev_fd);
+				return (1);
+			}
 		}
+
 		pid = fork();
 		if (pid < 0)
 		{
@@ -38,8 +43,11 @@ int	picoshell(char **cmds[])
 				close(fd[0]);
 				close(fd[1]);
 			}
+			if (prev_fd != -1)
+				close(prev_fd);
 			return(1);
 		}
+
 		else if (pid == 0)
 		{
 			if(i != 0)
@@ -56,6 +64,7 @@ int	picoshell(char **cmds[])
 			execvp(cmds[i][0], cmds[i]);
 			exit(1);
 		}
+
 		else
 		{
 			if (prev_fd != -1)
@@ -68,7 +77,9 @@ int	picoshell(char **cmds[])
 			i++;
 		}
 	}
+
 	while (wait(NULL) > 0)
 	;
 	return (0);
+
 }
