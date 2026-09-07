@@ -3,7 +3,7 @@
 
 char *g_expr;
 
-int expr(void);
+int add(void);
 
 void error(void)
 {
@@ -14,7 +14,7 @@ void error(void)
 	exit(1);
 }
 
-int factor(void)
+int parent(void)
 {
 	int n;
 
@@ -24,7 +24,7 @@ int factor(void)
 	if (*g_expr == '(')
 	{
 		g_expr++;
-		n = expr();
+		n = add();
 		if (*g_expr != ')')
 			error();
 		g_expr++;
@@ -34,28 +34,28 @@ int factor(void)
 return (0);
 }
 
-int term(void)
+int multi(void)
 {
 	int n;
 
-	n = factor();
-	while (g_expr == '')
+	n = parent();
+	while (g_expr == '*')
 	{
 		g_expr++;
-		n *= factor();
+		n *= parent();
 	}
 	return (n);
 }
 
-int expr(void)
+int add(void)
 {
 	int n;
 
-	n = term();
+	n = multi();
 	while (*g_expr == '+')
 	{
 		g_expr++;
-		n += term();
+		n += multi();
 	}
 	return (n);
 }
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	if (argc != 2)
 		return (1);
 	g_expr = argv[1];
-	result = expr();
+	result = add();
 	if (*g_expr != '\0')
 		error();
 	printf("%d\n", result);
